@@ -11,7 +11,7 @@ client.on("connect", function () {
     
     channel.on("login", function (name, role) {
         console.info("Logged in!");
-    }).on("chat", function (name, text, role) {
+    }).on("chat", function (name, text, role, params) { //params contains the full param-object including name, text, role, nameColor etc.
         console.log(name + " : " + text);
     }).on("motd", function (text) {
 
