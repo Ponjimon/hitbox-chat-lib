@@ -11,7 +11,10 @@ var HitboxClient = function (opts) {
     if (!opts.username && !opts.password) {
         throw "No credentials given. Aborting.";
     }
-
+    
+    opts.ignoreBan = opts.ignoreBan || false;
+    opts.ignoreBuffer = opts.ignoreBuffer || true;
+    this.opts = opts;
     events.EventEmitter.call(this);
     var self = this;
 
@@ -43,7 +46,8 @@ HitboxClient.prototype.onconnect = function (socket) {
         var flag = parseInt(data.split(":")[0]);
         switch (flag) {
             case 0:
-                throw "Server not available.";
+                self.close();
+                console.error("Client has been disconnected.");
                 return;
             case 1:
                 break;
@@ -73,8 +77,8 @@ HitboxClient.prototype.onmessage = function (message) {
 };
 HitboxClient.prototype.send = function (method, params, auth) {
     var self = this;
-    params.name = self.username;
-    if (auth) params.token = self.token;
+    params.name = params.name || self.username;
+    params.token = params.token || self.token;
     var args = [{ method: method, params: params }];
     args = JSON.stringify(args);
     self.socket.send('5:::{"name":"message","args":' + args + '}');
@@ -114,6 +118,9 @@ HitboxClient.prototype.open = function () {
             }
         });
     })();
+};
+HitboxClient.prototype.close = function () {
+    this.socket.close();
 };
 HitboxClient.prototype.joinChannel = function (channel) {
     if (!this.connected) throw "NotConnected";
