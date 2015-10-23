@@ -6,6 +6,13 @@ var Auth = require("./lib/auth.js");
 var HitboxChannel = require("./lib/channel.js");
 var Message = require("./lib/message.js");
 
+
+/**
+ * Creates the Hitbox.tv client. You need to call require("hitbox-chat-lib")
+ * 
+ * @param {object} opts
+ * @return {object}
+ */
 var HitboxClient = function (opts) {
     opts = opts || {};
     if (!opts.username && !opts.password) {
@@ -17,11 +24,11 @@ var HitboxClient = function (opts) {
     this.opts = opts;
     events.EventEmitter.call(this);
     var self = this;
-
+    
     this.channels = {};
     this.connected = false;
     this.username = opts.username;
-
+    
     Auth.getToken(opts, function (token) {
         self.token = token;
         
@@ -35,9 +42,13 @@ var HitboxClient = function (opts) {
             }
         });
     });
-}
+};
 util.inherits(HitboxClient, events.EventEmitter);
 
+/**
+ * Actually handles stuff
+ * Parses incoming socket messages and makes them actually human readable
+ */
 HitboxClient.prototype.onconnect = function (socket) {
     var self = this;
     self.connected = true;
@@ -67,6 +78,10 @@ HitboxClient.prototype.onconnect = function (socket) {
     });
     self.emit("connect");
 };
+
+/**
+ * Redirects an incoming message to the channel object
+ */
 HitboxClient.prototype.onmessage = function (message) {
     var channel = message.params.channel;
     if (channel in this.channels) {
@@ -75,14 +90,27 @@ HitboxClient.prototype.onmessage = function (message) {
         throw "Could not find channel " + channel;
     }
 };
-HitboxClient.prototype.send = function (method, params, auth) {
+
+/**
+ * The actual send method
+ * Sends a message through the socket with the given method and parameters
+ * 
+ * @param {string} method - Must be a valid method for messages
+ * @param {object} params - An object of params that should be sent along with the method
+ */ 
+HitboxClient.prototype.send = function (method, params) {
     var self = this;
     params.name = params.name || self.username;
     params.token = params.token || self.token;
     var args = [{ method: method, params: params }];
     args = JSON.stringify(args);
     self.socket.send('5:::{"name":"message","args":' + args + '}');
-}
+};
+
+/**
+ * Gets a list of available servers from Hitbox.tv
+ * This is for internal usage only
+ */
 HitboxClient.prototype.getServers = function (cb) {
     request({
         uri: "https://api.hitbox.tv/chat/servers?redis=true",
@@ -102,6 +130,10 @@ HitboxClient.prototype.getServers = function (cb) {
         return cb({ servers: servers, serversOnline: serversOnline });
     });
 };
+
+/**
+ * Opens the socket by connecting to the Hitbox.tv servers
+ */
 HitboxClient.prototype.open = function () {
     var i = -1;
     var self = this;
@@ -119,20 +151,31 @@ HitboxClient.prototype.open = function () {
         });
     })();
 };
+
+/**
+ * Closes the connected socket aka the client
+ */
 HitboxClient.prototype.close = function () {
     this.socket.close();
 };
+
+/**
+ * Joins the given channel and returns a channel object
+ * 
+ * @param {string} channel - The channel name to join
+ * @return {object}
+ */
 HitboxClient.prototype.joinChannel = function (channel) {
     if (!this.connected) throw "NotConnected";
-
+    
     var c = this.channels[c];
-
+    
     if (!c) {
         c = this.channels[channel] = new HitboxChannel(this, channel);
     }
-
+    
     c.join();
     return c
-}
+};
 
 module.exports = HitboxClient;
