@@ -15,7 +15,7 @@ var Message = require("./lib/message.js");
  */
 var HitboxClient = function (opts) {
     opts = opts || {};
-    if (!opts.username && !opts.password) {
+    if ((!opts.username && !opts.password) || !opts.token) {
         throw "No credentials given. Aborting.";
     }
     
@@ -29,9 +29,8 @@ var HitboxClient = function (opts) {
     this.connected = false;
     this.username = opts.username;
     
-    Auth.getToken(opts, function (token) {
-        self.token = token;
-        
+    if (opts.token) {
+        self.token = opts.token;
         self.getServers(function (response) {
             self.servers = response.servers;
             self.serversOnline = response.serversOnline;
@@ -41,7 +40,21 @@ var HitboxClient = function (opts) {
                 throw "No servers were available.";
             }
         });
-    });
+    } else {
+        Auth.getToken(opts, function (token) {
+            self.token = token;
+            
+            self.getServers(function (response) {
+                self.servers = response.servers;
+                self.serversOnline = response.serversOnline;
+                if (self.serversOnline > 0) {
+                    self.open();
+                } else {
+                    throw "No servers were available.";
+                }
+            });
+        });
+    }
 };
 util.inherits(HitboxClient, events.EventEmitter);
 
@@ -166,7 +179,7 @@ HitboxClient.prototype.close = function () {
  * @return {object}
  */
 HitboxClient.prototype.joinChannel = function (channel) {
-    if (!this.connected) throw "NotConnected";
+    if (!this.connected) throw "Client not connected.";
     
     var c = this.channels[c];
     
