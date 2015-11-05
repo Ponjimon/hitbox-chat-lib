@@ -1,4 +1,4 @@
-﻿var WebSocket = require("ws");
+﻿﻿ var WebSocket = require("ws");
 var request = require("request");
 var util = require("util");
 var events = require("events");
@@ -9,7 +9,7 @@ var Message = require("./lib/message.js");
 
 /**
  * Creates the Hitbox.tv client. You need to call require("hitbox-chat-lib")
- * 
+ *
  * @param {object} opts
  * @return {object}
  */
@@ -27,10 +27,12 @@ var HitboxClient = function (opts) {
     
     this.channels = {};
     this.connected = false;
-    this.username = opts.username;
     
-    if (opts.token) {
-        self.token = opts.token;
+    Auth.getToken(opts, function (data) {
+        self.token = data;
+        if (opts.token) self.token = opts.token;
+        if (opts.username) this.username = opts.username;
+        if (data.user_name) this.username = data.user_name;
         self.getServers(function (response) {
             self.servers = response.servers;
             self.serversOnline = response.serversOnline;
@@ -40,21 +42,7 @@ var HitboxClient = function (opts) {
                 throw "No servers were available.";
             }
         });
-    } else {
-        Auth.getToken(opts, function (token) {
-            self.token = token;
-            
-            self.getServers(function (response) {
-                self.servers = response.servers;
-                self.serversOnline = response.serversOnline;
-                if (self.serversOnline > 0) {
-                    self.open();
-                } else {
-                    throw "No servers were available.";
-                }
-            });
-        });
-    }
+    });
 };
 util.inherits(HitboxClient, events.EventEmitter);
 
@@ -68,6 +56,7 @@ HitboxClient.prototype.onconnect = function (socket) {
     self.socket = socket;
     socket.on("message", function (data) {
         var flag = parseInt(data.split(":")[0]);
+        console.log(data);
         switch (flag) {
             case 0:
                 self.close();
@@ -107,10 +96,10 @@ HitboxClient.prototype.onmessage = function (message) {
 /**
  * The actual send method
  * Sends a message through the socket with the given method and parameters
- * 
+ *
  * @param {string} method - Must be a valid method for messages
  * @param {object} params - An object of params that should be sent along with the method
- */ 
+ */
 HitboxClient.prototype.send = function (method, params) {
     var self = this;
     params.name = params.name || self.username;
@@ -174,7 +163,7 @@ HitboxClient.prototype.close = function () {
 
 /**
  * Joins the given channel and returns a channel object
- * 
+ *
  * @param {string} channel - The channel name to join
  * @return {object}
  */
