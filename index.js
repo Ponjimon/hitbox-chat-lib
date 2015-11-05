@@ -1,4 +1,4 @@
-﻿﻿ var WebSocket = require("ws");
+﻿﻿﻿ var WebSocket = require("ws");
 var request = require("request");
 var util = require("util");
 var events = require("events");
@@ -31,8 +31,8 @@ var HitboxClient = function (opts) {
     Auth.getToken(opts, function (data) {
         self.token = data;
         if (opts.token) self.token = opts.token;
-        if (opts.username) this.username = opts.username;
-        if (data.user_name) this.username = data.user_name;
+        if (opts.username) self.username = opts.username;
+        if (data.user_name) self.username = data.user_name;
         self.getServers(function (response) {
             self.servers = response.servers;
             self.serversOnline = response.serversOnline;
@@ -56,7 +56,6 @@ HitboxClient.prototype.onconnect = function (socket) {
     self.socket = socket;
     socket.on("message", function (data) {
         var flag = parseInt(data.split(":")[0]);
-        console.log(data);
         switch (flag) {
             case 0:
                 self.close();

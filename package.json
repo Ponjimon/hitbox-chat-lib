@@ -1,6 +1,6 @@
 {
   "name": "hitbox-chat-lib",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "A hitbox chat library for nodeJS",
   "author": "lookapanda",
   "dependencies": {
