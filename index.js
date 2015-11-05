@@ -15,7 +15,7 @@ var Message = require("./lib/message.js");
  */
 var HitboxClient = function (opts) {
     opts = opts || {};
-    if ((!opts.username && !opts.password) || !opts.token) {
+    if (!(opts.username && opts.password) && !(opts.token)) {
         throw "No credentials given. Aborting.";
     }
     
