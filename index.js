@@ -18,16 +18,16 @@ var HitboxClient = function (opts) {
     if (!(opts.username && opts.password) && !(opts.token)) {
         throw "No credentials given. Aborting.";
     }
-    
+
     opts.ignoreBan = opts.ignoreBan || false;
     opts.ignoreBuffer = opts.ignoreBuffer || true;
     this.opts = opts;
     events.EventEmitter.call(this);
     var self = this;
-    
+
     this.channels = {};
     this.connected = false;
-    
+
     Auth.getToken(opts, function (data) {
         self.token = data;
         if (opts.token) self.token = opts.token;
@@ -166,16 +166,16 @@ HitboxClient.prototype.close = function () {
  * @param {string} channel - The channel name to join
  * @return {object}
  */
-HitboxClient.prototype.joinChannel = function (channel) {
+HitboxClient.prototype.joinChannel = function (channel,notify) {
     if (!this.connected) throw "Client not connected.";
-    
+
     var c = this.channels[c];
-    
+
     if (!c) {
         c = this.channels[channel] = new HitboxChannel(this, channel);
     }
-    
-    c.join();
+    notify = notify || false;
+    c.join(notify);
     return c
 };
 
