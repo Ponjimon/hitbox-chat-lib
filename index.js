@@ -29,10 +29,11 @@ var HitboxClient = function (opts) {
     this.connected = false;
 
     Auth.getToken(opts, function (data) {
-        self.token = data;
         if (opts.token) self.token = opts.token;
         if (opts.username) self.username = opts.username;
         if (data.user_name) self.username = data.user_name;
+        if (data.token) self.token = data.token;
+
         self.getServers(function (response) {
             self.servers = response.servers;
             self.serversOnline = response.serversOnline;
@@ -86,7 +87,11 @@ HitboxClient.prototype.onconnect = function (socket) {
 HitboxClient.prototype.onmessage = function (message) {
     var channel = message.params.channel;
     if (channel in this.channels) {
-        this.channels[channel].onmessage(message);
+        if(message.method === 'directMsg') {
+          this.channels[self.username].onmessage(message);
+        }else{
+          this.channels[channel].onmessage(message);
+        }
     } else {
         throw "Could not find channel " + channel;
     }
