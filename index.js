@@ -1,4 +1,4 @@
-﻿﻿﻿ var WebSocket = require("ws");
+var WebSocket = require("ws");
 var request = require("request");
 var util = require("util");
 var events = require("events");
@@ -85,13 +85,14 @@ HitboxClient.prototype.onconnect = function (socket) {
  * Redirects an incoming message to the channel object
  */
 HitboxClient.prototype.onmessage = function (message) {
+    var self = this;
     var channel = message.params.channel;
+    if(message.method === 'directMsg') {
+      this.channels[self.username].onmessage(message);
+      return;
+    }
     if (channel in this.channels) {
-        if(message.method === 'directMsg') {
-          this.channels[self.username].onmessage(message);
-        }else{
-          this.channels[channel].onmessage(message);
-        }
+        this.channels[channel].onmessage(message);
     } else {
         throw "Could not find channel " + channel;
     }
