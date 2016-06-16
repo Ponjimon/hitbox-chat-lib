@@ -29,10 +29,11 @@ var HitboxClient = function (opts) {
     this.connected = false;
 
     Auth.getToken(opts, function (data) {
+      console.log(data);
         if (opts.token) self.token = opts.token;
         if (opts.username) self.username = opts.username;
         if (data.user_name) self.username = data.user_name;
-        if (data.token) self.token = data.token;
+        if (data.authToken) self.token = data.authToken;
 
         self.getServers(function (response) {
             self.servers = response.servers;
