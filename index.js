@@ -29,7 +29,6 @@ var HitboxClient = function (opts) {
     this.connected = false;
 
     Auth.getToken(opts, function (data) {
-      console.log(data);
         if (opts.token) self.token = opts.token;
         if (opts.username) self.username = opts.username;
         if (data.user_name) self.username = data.user_name;
